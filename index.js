@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/mongodb.js";
+import authRouter from "./routes/authRouter.js";
 
 dotenv.config();
 

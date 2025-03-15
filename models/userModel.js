@@ -1,14 +1,14 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
   name: String,
   email: String,
+  phone: { type: Number, unique: true }, // Added phone field
   password: String,
   role: { type: String, enum: ["student", "admin"], default: "student" },
   subscription: {
-    plan: { type: String, enum: ["basic", "standard", "premium"], default: "" },
+    plan: { type: String, enum: ["basic", "standard", "premium"], default: "basic" },
     expiresAt: Date,
-    
   },
   progress: [
     {
@@ -18,7 +18,5 @@ const userSchema = new mongoose.Schema({
     }
   ],
 }, { timestamps: true });
-
  
-export const user = mongoose.model("user", userSchema);
-
+export const User = mongoose.model("User", userSchema);
