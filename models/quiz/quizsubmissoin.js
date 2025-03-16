@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const quizSubmissionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "user" },  // Who attempted
@@ -12,4 +12,4 @@ const quizSubmissionSchema = new mongoose.Schema({
   passed: Boolean,  // If passed or not
 }, { timestamps: true });
 
-export const quizSubmission = mongoose.model("quizSubmission", quizSubmissionSchema);
+export const QuizSubmission = mongoose.model("QuizSubmission", quizSubmissionSchema);

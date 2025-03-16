@@ -1,7 +1,7 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const quizSchema = new mongoose.Schema({
-  title: String,
+  title: String, 
   chapterId: { type: mongoose.Schema.Types.ObjectId, ref: "chapter" },  // For Book Chapters
   moduleId: { type: mongoose.Schema.Types.ObjectId, ref: "module" },  // For Course Modules
   questions: [
@@ -17,4 +17,4 @@ const quizSchema = new mongoose.Schema({
   ],
 }, { timestamps: true });
 
-export const quiz = mongoose.model("quiz", quizSchema);
+export const Quiz = mongoose.model("Quiz", quizSchema);

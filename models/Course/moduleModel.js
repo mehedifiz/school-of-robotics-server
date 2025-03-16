@@ -1,13 +1,13 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const moduleSchema = new mongoose.Schema({
   title: String,
-  courseId: { type: mongoose.Schema.Types.ObjectId, ref: "course" },  
+  courseId: { type: mongoose.Schema.Types.ObjectId, ref: "Course" },  
   videoLinks: [{
     title: String ,
     link: String
   }],   
-  quizId: { type: mongoose.Schema.Types.ObjectId, ref: "quiz" },   
+  quizId: { type: mongoose.Schema.Types.ObjectId, ref: "Quiz" },   
 }, { timestamps: true });
 
-export const module = mongoose.model("module", moduleSchema);
+export const Module = mongoose.model("Module", moduleSchema);

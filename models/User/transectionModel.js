@@ -4,6 +4,7 @@ const transactionSchema = new mongoose.Schema(
   {
     userId: {
       type: mongoose.Schema.Types.ObjectId,
+      // Some models use lowercase refs
       ref: "user",
       required: true,
     },
@@ -28,4 +29,5 @@ const transactionSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Others use PascalCase refs
 export const Transaction = mongoose.model("Transaction", transactionSchema);
