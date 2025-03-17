@@ -1,4 +1,7 @@
 import mongoose from "mongoose";
+ import { Chapter
+
+  } from "../Book/chapterModel.js";
 
 const userSchema = new mongoose.Schema({
   name: {

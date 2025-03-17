@@ -8,4 +8,4 @@ const chapterSchema = new mongoose.Schema({
   quizId: { type: mongoose.Schema.Types.ObjectId, ref: "Quiz" },  // Relation to Quiz
 }, { timestamps: true });
 
- export const chapter = mongoose.model("Chapter", chapterSchema);
+ export const Chapter = mongoose.model("Chapter", chapterSchema);
