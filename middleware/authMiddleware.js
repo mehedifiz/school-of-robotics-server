@@ -6,7 +6,6 @@ import { handleAsync } from "../utils/handleAsync.js";
 const auth = (...requiredRoles) => {
   return handleAsync(async (req, res, next) => {
     const token = req.headers.authorization;
-    console.log("token" , token);
 
     if (!token) {
       throw new ApiError(401, "You are not authorized!");

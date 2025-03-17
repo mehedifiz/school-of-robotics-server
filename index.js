@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./config/mongodb.js";
 import authRouter from "./routes/authRouter.js";
+import bookRouter from "./routes/bookRoutes.js";
 
 dotenv.config();
 
@@ -17,6 +18,7 @@ app.use(express.json());
 connectDB()
 
 app.use("/api/auth", authRouter);
+app.use("/api/book", bookRouter);
 
 
 app.get("/", async (req, res) => {

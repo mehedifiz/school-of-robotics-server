@@ -9,6 +9,5 @@ authRouter.post("/register", registerUser);
 
 // Login user
 authRouter.post("/login", loginUser);
-authRouter.post("/test", auth("student"), test);
 
 export default authRouter;
