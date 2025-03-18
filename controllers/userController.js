@@ -2,6 +2,8 @@ import { User } from "../models/User/userModel.js";
 import { Chapter } from "../models/Book/chapterModel.js";
 import { Module } from "../models/Course/moduleModel.js";
 import mongoose from "mongoose";
+
+
 export const getUserByID = async (req, res) => {
   try {
     const userId = req.params.id;
@@ -43,3 +45,52 @@ export const getUserByID = async (req, res) => {
     });
   }
 };
+
+
+// get all user 
+
+export const getAllUser = async (req, res) => {
+  try {
+    const { search, role,subscription ,  page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+    let query = {};
+
+    if (search) {
+      const searchRegex = new RegExp(search.trim(), "i");
+      query.$or = [
+        { name: searchRegex }
+
+      ];
+    }
+    if(subscription){
+      query.subscription = subscription ;
+    }
+    if (role) {
+      query.role = role;
+    }
+
+    const users = await User.find(query).skip(skip)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 });
+
+    const total = await User.countDocuments(query);
+
+    res.status(200).json({
+      users,
+      totalPages: Math.ceil(total / limit),
+      currentPage: parseInt(page),
+      totalData: total
+
+
+    })
+
+
+  } catch (error) {
+    res.status(500).json({
+      status: false,
+      message: error.message
+    })
+  }
+
+
+}
