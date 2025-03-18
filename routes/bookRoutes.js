@@ -9,10 +9,10 @@ import {
 const bookRouter = express.Router();
 
 // Admin routes
-bookRouter.post('/create-book', auth('student'), createBook);
+bookRouter.post('/create-book', auth('admin'), createBook);
 
 // Student and Admin routes
-bookRouter.get('/get-books', auth('student', 'admin'), getAllBooks);
+bookRouter.get('/get-books', auth('student' , 'admin'), getAllBooks);
 bookRouter.get('/:id', auth('student', 'admin'), getBookById);
 
 export default bookRouter;
