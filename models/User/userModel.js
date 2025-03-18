@@ -9,6 +9,10 @@ const userSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  photpURL : { 
+    type: String, 
+    
+  },
   email: {
     type: String,
    
@@ -31,8 +35,8 @@ const userSchema = new mongoose.Schema({
   },
   subscription: { 
     type: String,
-    enum: ["basic", "standard", "premium"],
-    default: "basic"
+    enum: ["free","basic", "standard", "premium"],
+    default: "free"
   },
   progress: [
     {

@@ -1,13 +1,16 @@
 import express from "express";
 import auth from "../middleware/authMiddleware.js";
-import { getUserByID } from "../controllers/userController.js";
+import { getAllUser, getUserByID } from "../controllers/userController.js";
  
 
 const userRouter = express.Router();
 
-
+// get single user 
 userRouter.get("/get-user/:id" ,  auth('student', "admin") , getUserByID)
 
+// get all user 
+
+userRouter.get("/get-all" , getAllUser)
 
 
 
