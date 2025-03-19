@@ -12,7 +12,7 @@ const bookRouter = express.Router();
 bookRouter.post('/create-book', auth('admin'), createBook);
 
 // Student and Admin routes
-bookRouter.get('/get-books', auth('student' , 'admin'), getAllBooks);
+bookRouter.get('/get-books', auth('student' , 'admin'),  getAllBooks);
 bookRouter.get('/:id', auth('student', 'admin'), getBookById);
 
 export default bookRouter;

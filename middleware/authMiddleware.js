@@ -1,11 +1,12 @@
 import jwt from "jsonwebtoken";
-import { User } from "../models/User/userModel.js";
 import ApiError from "../utils/ApiError.js";
 import { handleAsync } from "../utils/handleAsync.js";
+import { User } from "../models/User/userModel.js";
 
 const auth = (...requiredRoles) => {
   return handleAsync(async (req, res, next) => {
     const token = req.headers.authorization;
+    console.log('token' , token);
 
     if (!token) {
       throw new ApiError(401, "You are not authorized!");

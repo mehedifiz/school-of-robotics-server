@@ -5,6 +5,7 @@ import connectDB from "./config/mongodb.js";
 import authRouter from "./routes/authRouter.js";
 import bookRouter from "./routes/bookRoutes.js";
 import userRouter from "./routes/userRouter.js";
+import planRouter from "./routes/subscriptionPlanRoutes.js";
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ connectDB()
 app.use("/api/user" , userRouter)
 app.use("/api/auth", authRouter);
 app.use("/api/book", bookRouter);
+app.use("/api/plan", planRouter);
 
 
 app.get("/", async (req, res) => {

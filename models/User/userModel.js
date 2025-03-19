@@ -1,7 +1,5 @@
 import mongoose from "mongoose";
- import { Chapter
-
-  } from "../Book/chapterModel.js";
+import { Chapter } from "../Book/chapterModel.js";
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -9,13 +7,11 @@ const userSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  photpURL : { 
+  photpURL: { 
     type: String, 
-    
   },
   email: {
     type: String,
-   
     unique: true,
     trim: true
   },
@@ -34,9 +30,18 @@ const userSchema = new mongoose.Schema({
     default: "student" 
   },
   subscription: { 
-    type: String,
-    enum: ["free","basic", "standard", "premium"],
-    default: "free"
+    plan: {
+      type: String,
+      enum: ["free", "basic", "standard", "premium"],
+      default: "free"
+    },
+    startDate: {
+      type: Date,
+      default: Date.now
+    },
+    endDate: {
+      type: Date
+    }
   },
   progress: [
     {
