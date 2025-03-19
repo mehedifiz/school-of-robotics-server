@@ -1,4 +1,5 @@
 import { Book } from "../models/Book/bookModel.js";
+import { User } from "../models/User/userModel.js";
 
 // Create a new book (Admin only)
 export const createBook = async (req, res) => {
@@ -39,7 +40,7 @@ export const createBook = async (req, res) => {
 export const getAllBooks = async (req, res) => {
   try {
     // If user is admin, return all books
-    if (req?.user?.role === 'admin') {
+    if (req.user.role === 'admin') {
       const books = await Book.find();
       return res.status(200).json({
         success: true,
@@ -48,24 +49,38 @@ export const getAllBooks = async (req, res) => {
       });
     }
 
-    // For regular users, filter by plan
-    const userPlan = req.user.subscription || "basic";
-    const planAccess = {
-      basic: ["basic"],
-      standard: ["basic", "standard"],
-      premium: ["basic", "standard", "premium"]
-    };
+    const user = await User.findById(req.user._id);
+    const now = new Date();
+    const subscriptionEndDate = user.subscription?.endDate;
+    const subscriptionStartDate = user.subscription?.startDate;
 
-    const books = await Book.find({ 
-      plan: { $in: planAccess[userPlan] } 
+    // Get books based on subscription period and plan
+    const books = await Book.find({
+      $and: [
+        { plan: user.subscription.plan },
+        { 
+          createdAt: { 
+            $gte: subscriptionStartDate,
+            $lte: subscriptionEndDate || now 
+          }
+        }
+      ]
     }).select('-createdBy');
 
     return res.status(200).json({
       success: true,
       message: "Books fetched successfully",
-      data: books
+      data: books,
+      subscription: {
+        plan: user.subscription.plan,
+        isActive: subscriptionEndDate > now,
+        startDate: subscriptionStartDate,
+        endDate: subscriptionEndDate
+      }
     });
+
   } catch (error) {
+    console.error("Error fetching books:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to fetch books"
