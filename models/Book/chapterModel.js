@@ -1,11 +1,27 @@
 import mongoose from "mongoose";
 
 const chapterSchema = new mongoose.Schema({
-  title: String,
-  chapterNo: Number ,
-  bookId: { type: mongoose.Schema.Types.ObjectId, ref: "Book" },  
-  pdfUrl: String,
-  quizId: { type: mongoose.Schema.Types.ObjectId, ref: "Quiz" },  // Relation to Quiz
+  title: {
+    type: String,
+    required: true
+  },
+  chapterNo: {
+    type: Number,
+    required: true
+  },
+  bookId: { 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: "Book",
+    required: true
+  },
+  pdfUrl: {
+    type: String,
+    required: true
+  },
+  quizId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Quiz"
+  }
 }, { timestamps: true });
 
- export const Chapter = mongoose.model("Chapter", chapterSchema);
+export const Chapter = mongoose.model("Chapter", chapterSchema);

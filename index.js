@@ -6,6 +6,7 @@ import authRouter from "./routes/authRouter.js";
 import bookRouter from "./routes/bookRoutes.js";
 import userRouter from "./routes/userRouter.js";
 import planRouter from "./routes/subscriptionPlanRoutes.js";
+import quizRouter from "./routes/quizRoutes.js";
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use("/api/user" , userRouter)
 app.use("/api/auth", authRouter);
 app.use("/api/book", bookRouter);
 app.use("/api/plan", planRouter);
+app.use("/api/quiz", quizRouter);
 
 
 app.get("/", async (req, res) => {

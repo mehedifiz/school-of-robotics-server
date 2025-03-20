@@ -1,4 +1,6 @@
 import { Book } from "../models/Book/bookModel.js";
+import { Chapter } from "../models/Book/chapterModel.js";
+import { QuizSubmission } from "../models/quiz/quizsubmissoin.js";
 import { User } from "../models/User/userModel.js";
 
 // Create a new book (Admin only)
@@ -57,11 +59,11 @@ export const getAllBooks = async (req, res) => {
     // Get books based on subscription period and plan
     const books = await Book.find({
       $and: [
-        { plan: user.subscription.plan },
-        { 
-          createdAt: { 
+        { plan: user?.subscription?.plan },
+        {
+          createdAt: {
             $gte: subscriptionStartDate,
-            $lte: subscriptionEndDate || now 
+            $lte: subscriptionEndDate || now
           }
         }
       ]
@@ -92,7 +94,7 @@ export const getAllBooks = async (req, res) => {
 export const getBookById = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log("book Id " , id)
+    console.log("book Id ", id)
     const book = await Book.findById(id);
 
     if (!book) {
@@ -110,9 +112,12 @@ export const getBookById = async (req, res) => {
         data: book
       });
     }
+    const user = await User.findById(req.user._id);
+    // console.log(user)
+
 
     // For regular users, check plan access
-    const userPlan = req.user.subscription || "basic";
+    const userPlan = user.subscription.plan || "free";
     const planAccess = {
       basic: ["basic"],
       standard: ["basic", "standard"],
@@ -135,6 +140,100 @@ export const getBookById = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch book details"
+    });
+  }
+};
+
+
+ 
+
+  // Add chapter
+export const addChapter = async (req, res) => {
+  try {
+    const { bookId, title, chapterNo, pdfUrl } = req.body;
+
+    // Check if book exists
+    const book = await Book.findById(bookId);
+    if (!book) {
+      return res.status(404).json({
+        success: false,
+        message: "Book not found"
+      });
+    }
+
+    // Check if chapter number already exists for this book
+    const existingChapter = await Chapter.findOne({ bookId, chapterNo });
+    if (existingChapter) {
+      return res.status(400).json({
+        success: false,
+        message: "Chapter number already exists for this book"
+      });
+    }
+
+    const newChapter = await Chapter.create({
+      title,
+      chapterNo,
+      bookId,
+      pdfUrl
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Chapter added successfully",
+      data: newChapter
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to add chapter",
+      error: error.message
+    });
+  }
+};
+
+// get chapters
+export const getChapter = async (req, res) => {
+  try {
+    const { bookId } = req.params;
+
+    const book = await Book.findById(bookId);
+    if(!book) {
+      return res.status(400).json({
+        success: false,
+        message: "Book not found"
+      });
+    }
+
+    const chapters = await Chapter.find({ bookId })
+      .sort({ chapterNo: 1 })
+      .populate('quizId', 'title questions'); // Populate quiz data
+
+    // Get user's quiz submissions
+    const submissions = await QuizSubmission.find({
+      userId: req?.user?._id,
+      quizId: { $in: chapters.map(ch => ch.quizId) }
+    });
+
+    // Add submission status to each chapter
+    const chaptersWithProgress = chapters.map(chapter => ({
+      ...chapter.toObject(),
+      quizSubmitted: submissions.some(sub => 
+        sub.quizId.equals(chapter.quizId?._id)
+      )
+    }));
+
+    return res.status(200).json({
+      success: true,
+      message: "Chapters fetched successfully",
+      data: chaptersWithProgress
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch chapters",
+      error: error.message
     });
   }
 };
