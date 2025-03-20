@@ -205,23 +205,39 @@ export const getChapter = async (req, res) => {
       });
     }
 
+    // Get all chapters with their quizzes
     const chapters = await Chapter.find({ bookId })
       .sort({ chapterNo: 1 })
-      .populate('quizId', 'title questions'); // Populate quiz data
+      .populate({
+        path: 'quizId',
+        select: 'title questions'
+      });
 
-    // Get user's quiz submissions
-    const submissions = await QuizSubmission.find({
-      userId: req?.user?._id,
-      quizId: { $in: chapters.map(ch => ch.quizId) }
+    // Get this user's quiz submissions for this book's chapters
+    const quizIds = chapters
+      .filter(chapter => chapter.quizId) // Only chapters with quizzes
+      .map(chapter => chapter.quizId?._id); // Get quiz IDs
+
+      console.log("quizids" , quizIds , "uederid", req.user?._id);
+
+    const userSubmissions = await QuizSubmission.find({
+      userId: req.user?._id,
+      quizId: { $in: quizIds }
     });
+    console.log('userSubmissions',userSubmissions)
 
-    // Add submission status to each chapter
-    const chaptersWithProgress = chapters.map(chapter => ({
-      ...chapter.toObject(),
-      quizSubmitted: submissions.some(sub => 
-        sub.quizId.equals(chapter.quizId?._id)
-      )
-    }));
+    // Mark chapters as completed based on quiz submissions
+    const chaptersWithProgress = chapters.map(chapter => {
+      // For each chapter, check if user submitted its quiz
+      const hasSubmittedQuiz = userSubmissions.some(
+        submission => submission.quizId.toString() === chapter.quizId?._id.toString()
+      );
+
+      return {
+        ...chapter.toObject(),
+        quizSubmitted: hasSubmittedQuiz
+      };
+    });
 
     return res.status(200).json({
       success: true,
@@ -230,10 +246,10 @@ export const getChapter = async (req, res) => {
     });
 
   } catch (error) {
+    console.error("Fetch chapters error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to fetch chapters",
-      error: error.message
+      message: "Failed to fetch chapters"
     });
   }
 };

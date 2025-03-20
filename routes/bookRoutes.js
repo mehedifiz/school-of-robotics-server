@@ -21,8 +21,10 @@ bookRouter.get('/:id', auth('student', 'admin'), getBookById);
 
 // chapter
 
+//add chapter
 
 bookRouter.post('/add-chapter', addChapter) 
 
-bookRouter.get('/get-chapter/:bookId', getChapter) 
+//// chapter
+bookRouter.get('/get-chapter/:bookId' , auth('student', 'admin'), getChapter) 
 export default bookRouter;
