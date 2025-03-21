@@ -170,12 +170,20 @@ export const addChapter = async (req, res) => {
       });
     }
 
+    // Create new chapter
     const newChapter = await Chapter.create({
       title,
       chapterNo,
       bookId,
       pdfUrl
     });
+
+    // Add chapter reference to book's chapters array
+    await Book.findByIdAndUpdate(
+      bookId,
+      { $push: { chapters: newChapter._id } },
+      { new: true }
+    );
 
     return res.status(201).json({
       success: true,
@@ -184,6 +192,7 @@ export const addChapter = async (req, res) => {
     });
 
   } catch (error) {
+    console.error("Add chapter error:", error);
     return res.status(500).json({
       success: false,
       message: "Failed to add chapter",

@@ -23,7 +23,7 @@ bookRouter.get('/:id', auth('student', 'admin'), getBookById);
 
 //add chapter
 
-bookRouter.post('/add-chapter', addChapter) 
+bookRouter.post('/add-chapter', auth(  'admin'), addChapter) 
 
 //// chapter
 bookRouter.get('/get-chapter/:bookId' , auth('student', 'admin'), getChapter) 
