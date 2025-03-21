@@ -3,6 +3,7 @@ import auth from '../middleware/authMiddleware.js';
 import {
   addChapter,
   createBook,
+  deleteBook,
   getAllBooks,
   getBookById,
   getChapter,
@@ -17,6 +18,7 @@ bookRouter.post('/create-book', auth('admin'), createBook);
 // Student and Admin routes
 bookRouter.get('/get-books', auth('student', 'admin'), getAllBooks);
 bookRouter.get('/:id', auth('student', 'admin'), getBookById);
+bookRouter.delete('/:id', auth('admin'), deleteBook);
 
 
 // chapter

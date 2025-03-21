@@ -144,7 +144,58 @@ export const getBookById = async (req, res) => {
   }
 };
 
+export const deleteBook = async (req, res) => {
+  try {
+    const { id } = req.params;
 
+    // Check if book exists
+    const book = await Book.findById(id);
+    if (!book) {
+      return res.status(404).json({
+        success: false,
+        message: "Book not found"
+      });
+    }
+
+    // // Get all chapters for this book
+    // const chapters = await Chapter.find({ bookId: id });
+    // const chapterIds = chapters.map(chapter => chapter._id);
+    
+    // // Get all quiz IDs from chapters
+    // const quizIds = chapters
+    //   .filter(chapter => chapter.quizId)
+    //   .map(chapter => chapter.quizId);
+    
+    // // Delete all quiz submissions for these quizzes
+    // if (quizIds.length > 0) {
+    //   await QuizSubmission.deleteMany({ quizId: { $in: quizIds } });
+    // }
+    
+    // // Remove references to chapters from user progress
+    // await User.updateMany(
+    //   { "progress.chapterId": { $in: chapterIds } },
+    //   { $pull: { progress: { chapterId: { $in: chapterIds } } } }
+    // );
+    
+    // // Delete all chapters
+    // await Chapter.deleteMany({ bookId: id });
+    
+    // Delete the book
+    await Book.findByIdAndDelete(id);
+    
+    return res.status(200).json({
+      success: true,
+      message: "Book and all related data deleted successfully"
+    });
+  } catch (error) {
+    console.error("Delete book error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete book",
+      error: error.message
+    });
+  }
+};
  
 
   // Add chapter
