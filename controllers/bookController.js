@@ -144,6 +144,7 @@ export const getBookById = async (req, res) => {
   }
 };
 
+// delete book
 export const deleteBook = async (req, res) => {
   try {
     const { id } = req.params;
@@ -196,7 +197,59 @@ export const deleteBook = async (req, res) => {
     });
   }
 };
- 
+
+// Update book details
+export const updateBook = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, author, description, thumbnail, plan } = req.body;
+
+    // Check if book exists
+    const book = await Book.findById(id);
+    if (!book) {
+      return res.status(404).json({
+        success: false,
+        message: "Book not found"
+      });
+    }
+
+    // Check if user is admin (optional if already handled by middleware)
+    if (req.user.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: "Only admins can update books"
+      });
+    }
+
+    // Create update object with only provided fields
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (author) updateData.author = author;
+    if (description) updateData.description = description;
+    if (thumbnail) updateData.thumbnail = thumbnail;
+    if (plan) updateData.plan = plan;
+
+    // Update the book
+    const updatedBook = await Book.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Book updated successfully",
+      data: updatedBook
+    });
+  } catch (error) {
+    console.error("Update book error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update book",
+      error: error.message
+    });
+  }
+};
 
   // Add chapter
 export const addChapter = async (req, res) => {

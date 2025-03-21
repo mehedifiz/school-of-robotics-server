@@ -7,6 +7,7 @@ import {
   getAllBooks,
   getBookById,
   getChapter,
+  updateBook,
   
 } from '../controllers/bookController.js';
 
@@ -18,6 +19,7 @@ bookRouter.post('/create-book', auth('admin'), createBook);
 // Student and Admin routes
 bookRouter.get('/get-books', auth('student', 'admin'), getAllBooks);
 bookRouter.get('/:id', auth('student', 'admin'), getBookById);
+bookRouter.patch('/:id', auth('admin'), updateBook);
 bookRouter.delete('/:id', auth('admin'), deleteBook);
 
 
