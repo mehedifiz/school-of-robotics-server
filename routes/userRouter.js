@@ -6,7 +6,7 @@ import { getAllUser, getUserByID } from "../controllers/userController.js";
 const userRouter = express.Router();
 
 // get single user 
-userRouter.get("/get-user/:id" ,  auth('student', "admin") , getUserByID)
+userRouter.get("/get-user/:id"   , getUserByID)
 
 // get all user 
 

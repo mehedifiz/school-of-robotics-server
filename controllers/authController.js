@@ -82,31 +82,4 @@ export const loginUser = async (req, res) => {
   }
 };
 
-export const test = async (req, res) => {
-  try {
-    // Check if user exists in request
-    if (!req.user) {
-      return res.status(401).json({
-        success: false,
-        error: "No user found in request"
-      });
-    }
-
-    // Send success response
-    return res.status(200).json({
-      success: true,
-      message: "Test successful",
-      data: {
-        userId: req.user._id,
-        role: req.user.role
-      }
-    });
-
-  } catch (error) {
-    console.error("Test endpoint error:", error);
-    return res.status(500).json({
-      success: false,
-      error: "Server error in test endpoint"
-    });
-  }
-};
+ 
