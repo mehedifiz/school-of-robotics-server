@@ -404,13 +404,21 @@ export const deleteChapter = async(req , res)=>{
   try {
 
     const result = await Chapter.findByIdAndDelete(chapterId);
+    console.log("result", result)
 
 
       
       if(result){
+
+        const bookId = result.bookId;
+
+        const removechapter = await Book.findByIdAndUpdate(bookId ,{$pull:{chapters:chapterId}})
+
+        // console.log("removechapter", removechapter)
+
         return res.status(200).json({
           success:true,
-          message:"Chapter deleted successfully"
+          message:"Chapter deleted successfully",
         })
       }
     
