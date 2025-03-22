@@ -409,3 +409,39 @@ export const updateChapter = async (req, res) => {
 
 
 }
+
+export const deleteChapter = async(req , res)=>{
+  const {chapterId}= req.params;
+
+  console.log("chapterId", chapterId)
+
+  try {
+
+    const result = await Chapter.findByIdAndDelete(chapterId);
+
+
+      
+      if(result){
+        return res.status(200).json({
+          success:true,
+          message:"Chapter deleted successfully"
+        })
+      }
+    
+      if(!result){
+        return res.status(400).json({
+          success:false,
+          message:"Chapter not found"
+        })
+      }
+    
+    
+  }  catch(error){
+    res.status(500).json({
+      success:false,
+      message:"Failed to delete chapter",
+      error:error.message
+    })
+  }
+   
+    }

@@ -8,7 +8,8 @@ import {
   getBookById,
   getChapter,
   updateBook,
-  updateChapter
+  updateChapter,
+  deleteChapter
   
 } from '../controllers/bookController.js';
 
@@ -34,4 +35,8 @@ bookRouter.post('/add-chapter', auth(  'admin'), addChapter)
 bookRouter.get('/get-chapter/:bookId' , auth('student', 'admin'), getChapter) 
 
 bookRouter.patch('/update-chapter/:chapterId', auth('admin'), updateChapter);
+
+bookRouter.delete('/delete-chapter/:chapterId', auth("admin") ,deleteChapter)
+
+
 export default bookRouter;
