@@ -161,29 +161,29 @@ export const deleteBook = async (req, res) => {
     // // Get all chapters for this book
     // const chapters = await Chapter.find({ bookId: id });
     // const chapterIds = chapters.map(chapter => chapter._id);
-    
+
     // // Get all quiz IDs from chapters
     // const quizIds = chapters
     //   .filter(chapter => chapter.quizId)
     //   .map(chapter => chapter.quizId);
-    
+
     // // Delete all quiz submissions for these quizzes
     // if (quizIds.length > 0) {
     //   await QuizSubmission.deleteMany({ quizId: { $in: quizIds } });
     // }
-    
+
     // // Remove references to chapters from user progress
     // await User.updateMany(
     //   { "progress.chapterId": { $in: chapterIds } },
     //   { $pull: { progress: { chapterId: { $in: chapterIds } } } }
     // );
-    
+
     // // Delete all chapters
     // await Chapter.deleteMany({ bookId: id });
-    
+
     // Delete the book
     await Book.findByIdAndDelete(id);
-    
+
     return res.status(200).json({
       success: true,
       message: "Book and all related data deleted successfully"
@@ -251,7 +251,7 @@ export const updateBook = async (req, res) => {
   }
 };
 
-  // Add chapter
+// Add chapter
 export const addChapter = async (req, res) => {
   try {
     const { bookId, title, chapterNo, pdfUrl } = req.body;
@@ -311,7 +311,7 @@ export const getChapter = async (req, res) => {
     const { bookId } = req.params;
 
     const book = await Book.findById(bookId);
-    if(!book) {
+    if (!book) {
       return res.status(400).json({
         success: false,
         message: "Book not found"
@@ -331,13 +331,13 @@ export const getChapter = async (req, res) => {
       .filter(chapter => chapter.quizId) // Only chapters with quizzes
       .map(chapter => chapter.quizId?._id); // Get quiz IDs
 
-      console.log("quizids" , quizIds , "uederid", req.user?._id);
+    console.log("quizids", quizIds, "uederid", req.user?._id);
 
     const userSubmissions = await QuizSubmission.find({
       userId: req.user?._id,
       quizId: { $in: quizIds }
     });
-    console.log('userSubmissions',userSubmissions)
+    console.log('userSubmissions', userSubmissions)
 
     // Mark chapters as completed based on quiz submissions
     const chaptersWithProgress = chapters.map(chapter => {
@@ -366,3 +366,46 @@ export const getChapter = async (req, res) => {
     });
   }
 };
+
+
+export const updateChapter = async (req, res) => {
+  const chapterId = req.params.chapterId
+
+  const { title, pdfUrl } = req.body;
+
+  try {
+
+    const chapter = await Chapter.findOne({ _id: chapterId })
+    console.log("chapter", chapter)
+    if (!chapter) {
+      return res.status(400).json({
+        success: false,
+        message: "Chapter not found"
+      });
+    }
+
+    const updateChapter = await Chapter.findByIdAndUpdate(chapterId, { title, pdfUrl },
+      { new: true }
+    )
+
+    console.log("updateChapter", updateChapter)
+
+    return res.status(200).json({
+      success: true,
+      message: "Chapter updated successfully",
+
+    })
+
+  } catch (error) {
+
+    console.error("Update chapter error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update chapter",
+      error: error.message
+    });
+
+  }
+
+
+}
