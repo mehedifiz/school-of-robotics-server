@@ -159,27 +159,13 @@ export const deleteBook = async (req, res) => {
     }
 
     // // Get all chapters for this book
-    // const chapters = await Chapter.find({ bookId: id });
-    // const chapterIds = chapters.map(chapter => chapter._id);
+    const chapters = await Chapter.find({ bookId: id });
+    const chapterIds = chapters.map(chapter => chapter._id);
 
-    // // Get all quiz IDs from chapters
-    // const quizIds = chapters
-    //   .filter(chapter => chapter.quizId)
-    //   .map(chapter => chapter.quizId);
 
-    // // Delete all quiz submissions for these quizzes
-    // if (quizIds.length > 0) {
-    //   await QuizSubmission.deleteMany({ quizId: { $in: quizIds } });
-    // }
-
-    // // Remove references to chapters from user progress
-    // await User.updateMany(
-    //   { "progress.chapterId": { $in: chapterIds } },
-    //   { $pull: { progress: { chapterId: { $in: chapterIds } } } }
-    // );
 
     // // Delete all chapters
-    // await Chapter.deleteMany({ bookId: id });
+    await Chapter.deleteMany({ bookId: id });
 
     // Delete the book
     await Book.findByIdAndDelete(id);
