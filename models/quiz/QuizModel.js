@@ -1,7 +1,10 @@
 import mongoose from "mongoose";
 
 const quizSchema = new mongoose.Schema({
-  title: String, 
+  title: {
+    type: String,
+    required: true,
+  }, 
   chapterId: { type: mongoose.Schema.Types.ObjectId, ref: "chapter" },  // For Book Chapters
   moduleId: { type: mongoose.Schema.Types.ObjectId, ref: "module" },  // For Course Modules
   questions: [
@@ -13,7 +16,7 @@ const quizSchema = new mongoose.Schema({
         isCorrect: Boolean
       }]
 
-    }
+    }, 
   ],
 }, { timestamps: true });
 

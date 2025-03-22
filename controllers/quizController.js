@@ -1,51 +1,84 @@
 import { Quiz } from "../models/quiz/QuizModel.js";
 import { Chapter } from "../models/Book/chapterModel.js";
 import { QuizSubmission } from "../models/quiz/quizsubmissoin.js";
+import { Module } from "../models/Course/moduleModel.js";
 
 export const createQuiz = async (req, res) => {
   try {
-    const { chapterId, title, questions } = req.body;
 
-    // Validate if chapter exists
-    const chapter = await Chapter.findById(chapterId);
-    if (!chapter) {
-      return res.status(404).json({
+    const { title, chapterId, moduleId, questions } = req.body;
+
+    if ((!chapterId && !moduleId) || (chapterId && moduleId)) {
+      return res.status(400).json({
         success: false,
-        message: "Chapter not found"
+        message: "Invalid request. Provide either chapterId or moduleId"
       });
     }
 
-    // Check if quiz already exists for this chapter
-    const existingQuiz = await Quiz.findOne({ chapterId });
-    if (existingQuiz) {
+    if (chapterId) {
+      const chapter = await Chapter.findById(chapterId)
+      if (!chapter) {
+        return res.status(404).json({
+          success: false,
+          message: "Chapter not found"
+        });
+      }
+    }
+
+    const isExitChapquiz = await Quiz.findOne({chapterId})
+    if(isExitChapquiz){
       return res.status(400).json({
         success: false,
         message: "Quiz already exists for this chapter"
       });
     }
 
-    // Create new quiz
-    const newQuiz = await Quiz.create({
+    if (moduleId) {
+      const modules = await Module.findById(moduleId)
+      if (!modules) {
+        return res.status(404).json({
+          success: false,
+          message: "Module not found"
+        });
+      }
+    }
+
+    const isExitModquiz = await Quiz.findOne({moduleId})
+    if(isExitModquiz){
+      return res.status(400).json({
+        success: false,
+        message: "Quiz already exists for this Module"
+      });
+    }
+
+    const quiz = await Quiz.create({
       title,
       chapterId,
-      questions: questions.map((q, index) => ({
-        ...q,
-        questionNo: index + 1
-      }))
+      moduleId,
+      questions
     });
 
-    // Update chapter with quiz reference
-    await Chapter.findByIdAndUpdate(chapterId, {
-      quizId: newQuiz._id
-    });
+    console.log('Quiz created:', quiz);
 
+    if(chapterId){
+      await Chapter.findByIdAndUpdate(chapterId ,{quizId:quiz._id})
+    }
+    if(moduleId){
+      await Chapter.findByIdAndUpdate(moduleId ,{quizId:quiz._id})
+    }
+
+    
     return res.status(201).json({
       success: true,
       message: "Quiz created successfully",
-      data: newQuiz
+      data: quiz
     });
 
-  } catch (error) {
+
+
+  }
+
+  catch (error) {
     console.error("Create quiz error:", error);
     return res.status(500).json({
       success: false,
@@ -136,3 +169,95 @@ export const submitQuiz = async (req, res) => {
     });
   }
 };
+
+ 
+
+export const updateQuiz = async (req, res) => {
+  try {
+    const { quizId } = req.params;
+    const { title, questions } = req.body;
+
+    
+    const quiz = await Quiz.findById(quizId);
+    if (!quiz) {
+      return res.status(404).json({
+        success: false,
+        message: "Quiz not found"
+      });
+    }
+ 
+    const updatedQuiz = await Quiz.findByIdAndUpdate(
+      quizId,
+      {
+        title,
+        questions: questions.map((q, index) => ({
+          ...q,
+          questionNo: index + 1
+        }))
+      },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Quiz updated successfully",
+      data: updatedQuiz
+    });
+
+  } catch (error) {
+    console.error("Update quiz error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update quiz",
+      error: error.message
+    });
+  }
+};
+
+export const deleteQuiz = async (req, res) => {
+  try {
+    const { quizId } = req.params;
+
+    
+    const quiz = await Quiz.findById(quizId);
+    if (!quiz) {
+      return res.status(404).json({
+        success: false,
+        message: "Quiz not found"
+      });
+    }
+
+    
+    if (quiz.chapterId) {
+      await Chapter.findByIdAndUpdate(quiz.chapterId, {
+        $unset: { quizId: "" }
+      });
+    }
+    
+    if (quiz.moduleId) {
+      await Module.findByIdAndUpdate(quiz.moduleId, {
+        $unset: { quizId: "" }
+      });
+    }
+
+   
+    await QuizSubmission.deleteMany({ quizId });
+
+    
+    await Quiz.findByIdAndDelete(quizId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Quiz deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("Delete quiz error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete quiz",
+      error: error.message
+    });
+  }
+};
+
