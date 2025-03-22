@@ -357,7 +357,7 @@ export const getChapter = async (req, res) => {
 export const updateChapter = async (req, res) => {
   const chapterId = req.params.chapterId
 
-  const { title, pdfUrl } = req.body;
+  const { title, pdfUrl  , chapterNo} = req.body;
 
   try {
 
@@ -370,7 +370,7 @@ export const updateChapter = async (req, res) => {
       });
     }
 
-    const updateChapter = await Chapter.findByIdAndUpdate(chapterId, { title, pdfUrl },
+    const updateChapter = await Chapter.findByIdAndUpdate(chapterId, { title, pdfUrl , chapterNo  },
       { new: true }
     )
 
