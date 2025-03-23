@@ -62,7 +62,7 @@ export const getAllBooks = async (req, res) => {
         { plan: user?.subscription?.plan },
         {
           createdAt: {
-            $gte: subscriptionStartDate,
+
             $lte: subscriptionEndDate || now
           }
         }
@@ -357,7 +357,7 @@ export const getChapter = async (req, res) => {
 export const updateChapter = async (req, res) => {
   const chapterId = req.params.chapterId
 
-  const { title, pdfUrl  , chapterNo} = req.body;
+  const { title, pdfUrl, chapterNo } = req.body;
 
   try {
 
@@ -370,7 +370,7 @@ export const updateChapter = async (req, res) => {
       });
     }
 
-    const updateChapter = await Chapter.findByIdAndUpdate(chapterId, { title, pdfUrl , chapterNo  },
+    const updateChapter = await Chapter.findByIdAndUpdate(chapterId, { title, pdfUrl, chapterNo },
       { new: true }
     )
 
@@ -396,8 +396,8 @@ export const updateChapter = async (req, res) => {
 
 }
 
-export const deleteChapter = async(req , res)=>{
-  const {chapterId}= req.params;
+export const deleteChapter = async (req, res) => {
+  const { chapterId } = req.params;
 
   console.log("chapterId", chapterId)
 
@@ -407,38 +407,104 @@ export const deleteChapter = async(req , res)=>{
     console.log("result", result)
 
 
-      
-      if(result){
 
-        const bookId = result.bookId;
+    if (result) {
 
-        const removechapter = await Book.findByIdAndUpdate(bookId ,{$pull:{chapters:chapterId}})
+      const bookId = result.bookId;
 
-        // console.log("removechapter", removechapter)
+      const removechapter = await Book.findByIdAndUpdate(bookId, { $pull: { chapters: chapterId } })
 
-        return res.status(200).json({
-          success:true,
-          message:"Chapter deleted successfully",
-        })
-      }
-    
-      if(!result){
-        return res.status(400).json({
-          success:false,
-          message:"Chapter not found"
-        })
-      }
-    
-    
-  }  catch(error){
-    res.status(500).json({
-      success:false,
-      message:"Failed to delete chapter",
-      error:error.message
-    })
-  }
-   
+      // console.log("removechapter", removechapter)
+
+      return res.status(200).json({
+        success: true,
+        message: "Chapter deleted successfully",
+      })
+    }
+
+    if (!result) {
+      return res.status(400).json({
+        success: false,
+        message: "Chapter not found"
+      })
     }
 
 
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete chapter",
+      error: error.message
+    })
+  }
+
+}
+
+
+
+export const getBooksFree = async (req, res) => {
+
+
+  try {
+    const { plan, title, limit = 10, page = 1 } = req.body;
+    let query = {};
+    let skip = (page - 1) * limit;
+    if (plan) {
+
+      query.plan = plan;
+
+    }
+    if (title) {
+      query.title = title;
+    }
+
+    const allBooks = await Book.find(query).populate({
+      path:'chapters',
+      select: 'title chapterNo'
+    }).skip(skip).limit(limit)
     
+    if(allBooks){
+      return res.status(200).json({
+        success : true ,
+        message: "Books here ",
+        books: allBooks
+      })
+    }
+
+  } catch (error) {
+
+    console.log(error)
+    res.status(400).json({
+      success :false ,
+      message: "Error"
+    })
+
+  }
+}
+
+export const getChaptersFree = async(req , res)=>{
+
+  try {
+    const {bookId} = req.params;
+    console.log("book Id" , bookId)
+    
+
+    const chapters = await Chapter.find({bookId}).select("-pdfUrl")
+    if(chapters){
+      return res.status(200).json({
+        success: true ,
+        message: "Books Chaptes ",
+        data:chapters
+      })
+    }
+    
+  } catch (error) {
+    console.log(error)
+    res.status(400).json({
+      success :false ,
+      message: "Error"
+    })
+    
+  }
+
+}
