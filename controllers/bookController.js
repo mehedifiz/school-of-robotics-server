@@ -1,5 +1,6 @@
 import { Book } from "../models/Book/bookModel.js";
 import { Chapter } from "../models/Book/chapterModel.js";
+import { Quiz } from "../models/quiz/QuizModel.js";
 import { QuizSubmission } from "../models/quiz/quizsubmissoin.js";
 import { User } from "../models/User/userModel.js";
 
@@ -404,13 +405,14 @@ export const deleteChapter = async (req, res) => {
   try {
 
     const result = await Chapter.findByIdAndDelete(chapterId);
-    console.log("result", result)
 
 
 
     if (result) {
 
       const bookId = result.bookId;
+
+      const removeQuiz = await Quiz.findOneAndDelete({chapterId :chapterId })
 
       const removechapter = await Book.findByIdAndUpdate(bookId, { $pull: { chapters: chapterId } })
 
@@ -459,13 +461,13 @@ export const getBooksFree = async (req, res) => {
     }
 
     const allBooks = await Book.find(query).populate({
-      path:'chapters',
+      path: 'chapters',
       select: 'title chapterNo'
     }).skip(skip).limit(limit)
-    
-    if(allBooks){
+
+    if (allBooks) {
       return res.status(200).json({
-        success : true ,
+        success: true,
         message: "Books here ",
         books: allBooks
       })
@@ -475,36 +477,36 @@ export const getBooksFree = async (req, res) => {
 
     console.log(error)
     res.status(400).json({
-      success :false ,
+      success: false,
       message: "Error"
     })
 
   }
 }
 
-export const getChaptersFree = async(req , res)=>{
+export const getChaptersFree = async (req, res) => {
 
   try {
-    const {bookId} = req.params;
-    console.log("book Id" , bookId)
-    
+    const { bookId } = req.params;
+    console.log("book Id", bookId)
 
-    const chapters = await Chapter.find({bookId}).select("-pdfUrl")
-    if(chapters){
+
+    const chapters = await Chapter.find({ bookId }).select("-pdfUrl")
+    if (chapters) {
       return res.status(200).json({
-        success: true ,
+        success: true,
         message: "Books Chaptes ",
-        data:chapters
+        data: chapters
       })
     }
-    
+
   } catch (error) {
     console.log(error)
     res.status(400).json({
-      success :false ,
+      success: false,
       message: "Error"
     })
-    
+
   }
 
 }
