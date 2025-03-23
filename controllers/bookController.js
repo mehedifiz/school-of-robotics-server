@@ -7,7 +7,7 @@ import { User } from "../models/User/userModel.js";
 // Create a new book (Admin only)
 export const createBook = async (req, res) => {
   try {
-    const { name, description, thumbnail, plan } = req.body;
+    const { name, description, thumbnail, plan  , author} = req.body;
 
     if (!name || !description || !plan) {
       return res.status(400).json({
@@ -21,6 +21,7 @@ export const createBook = async (req, res) => {
       description,
       thumbnail,
       plan,
+      author,
       createdBy: req.user._id
     });
 
@@ -510,3 +511,4 @@ export const getChaptersFree = async (req, res) => {
   }
 
 }
+
