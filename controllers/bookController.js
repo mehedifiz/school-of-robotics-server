@@ -481,3 +481,30 @@ export const getBooksFree = async (req, res) => {
 
   }
 }
+
+export const getChaptersFree = async(req , res)=>{
+
+  try {
+    const {bookId} = req.params;
+    console.log("book Id" , bookId)
+    
+
+    const chapters = await Chapter.find({bookId}).select("-pdfUrl")
+    if(chapters){
+      return res.status(200).json({
+        success: true ,
+        message: "Books Chaptes ",
+        data:chapters
+      })
+    }
+    
+  } catch (error) {
+    console.log(error)
+    res.status(400).json({
+      success :false ,
+      message: "Error"
+    })
+    
+  }
+
+}
