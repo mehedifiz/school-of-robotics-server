@@ -3,6 +3,7 @@ import { Chapter } from "../models/Book/chapterModel.js";
 import { Quiz } from "../models/quiz/QuizModel.js";
 import { QuizSubmission } from "../models/quiz/quizsubmissoin.js";
 import { User } from "../models/User/userModel.js";
+import { BookProgress } from "../models/Book/bookProgressModel.js";
 
 // Create a new book (Admin only)
 export const createBook = async (req, res) => {
@@ -512,3 +513,165 @@ export const getBookFree = async (req, res) => {
 
 }
 
+
+// Add this function to get book progress
+export const getBookProgress = async (req, res) => {
+  try {
+    const { bookId } = req.params;
+    const userId = req.user._id;
+
+    // Find or create progress
+    let bookProgress = await BookProgress.findOne({ userId, bookId });
+
+    if (!bookProgress) {
+      bookProgress = new BookProgress({
+        userId,
+        bookId,
+        completedChapters: []
+      });
+      await bookProgress.save();
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Book progress retrieved successfully",
+      data: bookProgress
+    });
+  } catch (error) {
+    console.error("Get book progress error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to get book progress",
+      error: error.message
+    });
+  }
+};
+
+// Get user's reading progress across all books
+export const getUserReadingProgress = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    
+    // Get all book progress records for this user
+    const bookProgressRecords = await BookProgress.find({ userId })
+      .populate('bookId', 'name thumbnail plan chapters')
+      .populate('completedChapters', 'title chapterNo')
+      .populate('lastReadChapterId', 'title chapterNo');
+    
+    // Format response data
+    const formattedProgress = bookProgressRecords.map(record => {
+      const totalChapters = record.bookId?.chapters?.length || 0;
+      const completedChapters = record.completedChapters?.length || 0;
+      
+      return {
+        bookId: record.bookId?._id,
+        name: record.bookId?.name,
+        thumbnail: record.bookId?.thumbnail,
+        plan: record.bookId?.plan,
+        completedChapters: record.completedChapters || [],
+        lastReadChapterId: record.lastReadChapterId?._id || null,
+        lastReadChapterTitle: record.lastReadChapterId?.title || null,
+        lastReadAt: record.updatedAt,
+        percentage: totalChapters > 0 ? (completedChapters / totalChapters) : 0
+      };
+    });
+    
+    return res.status(200).json({
+      success: true,
+      message: "Reading progress retrieved successfully",
+      data: formattedProgress
+    });
+  } catch (error) {
+    console.error("Error getting reading progress:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve reading progress",
+      error: error.message
+    });
+  }
+};
+
+// Update book progress when starting a chapter
+export const updateLastReadChapter = async (req, res) => {
+  try {
+    const { bookId, chapterId } = req.body;
+    const userId = req.user._id;
+    
+    // Find or create book progress
+    let bookProgress = await BookProgress.findOne({ userId, bookId });
+    
+    if (!bookProgress) {
+      bookProgress = new BookProgress({
+        userId,
+        bookId,
+        completedChapters: [],
+        lastReadChapterId: chapterId
+      });
+    } else {
+      bookProgress.lastReadChapterId = chapterId;
+    }
+    
+    await bookProgress.save();
+    
+    return res.status(200).json({
+      success: true,
+      message: "Reading progress updated successfully",
+      data: bookProgress
+    });
+  } catch (error) {
+    console.error("Error updating reading progress:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update reading progress",
+      error: error.message
+    });
+  }
+};
+
+// Update book progress when completing a quiz
+export const markChapterComplete = async (req, res) => {
+  try {
+    const { bookId, chapterId } = req.body;
+    const userId = req.user._id;
+    
+    console.log(`Marking chapter complete: Book ${bookId}, Chapter ${chapterId}, User ${userId}`);
+    
+    // Find book progress
+    let bookProgress = await BookProgress.findOne({ userId, bookId });
+    
+    if (!bookProgress) {
+      // Create new progress record if it doesn't exist
+      bookProgress = new BookProgress({
+        userId,
+        bookId,
+        completedChapters: [chapterId],
+        lastReadChapterId: chapterId
+      });
+    } else {
+      // Check if chapter is already marked as completed
+      const alreadyCompleted = bookProgress.completedChapters
+        .map(id => id.toString())
+        .includes(chapterId.toString());
+        
+      // Add to completed chapters if not already included
+      if (!alreadyCompleted) {
+        bookProgress.completedChapters.push(chapterId);
+      }
+    }
+    
+    await bookProgress.save();
+    
+    return res.status(200).json({
+      success: true,
+      message: "Chapter marked as completed",
+      data: bookProgress
+    });
+  } catch (error) {
+    console.error("Error marking chapter as complete:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to mark chapter as complete",
+      error: error.message
+    });
+  }
+};
