@@ -6,7 +6,6 @@ import { User } from "../models/User/userModel.js";
 const auth = (...requiredRoles) => {
   return handleAsync(async (req, res, next) => {
     const token = req.headers.authorization;
-    console.log('token' , token);
 
     if (!token) {
       throw new ApiError(401, "You are not authorized!");
@@ -15,7 +14,6 @@ const auth = (...requiredRoles) => {
     // checking if the given token is valid
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const { id, role } = decoded;
-    console.log( id, role )
 
     // checking if the user exists
     const user = await User.findById(id);

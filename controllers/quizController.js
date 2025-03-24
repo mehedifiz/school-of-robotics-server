@@ -55,9 +55,9 @@ export const getQuizByChapter = async (req, res) => {
 
 export const createQuiz = async (req, res) => {
   try {
-
     const { title, chapterId, moduleId, questions } = req.body;
 
+    // Validate that either chapterId or moduleId is provided, but not both
     if ((!chapterId && !moduleId) || (chapterId && moduleId)) {
       return res.status(400).json({
         success: false,
@@ -65,74 +65,72 @@ export const createQuiz = async (req, res) => {
       });
     }
 
+    // Handle chapter quiz
     if (chapterId) {
-      const chapter = await Chapter.findById(chapterId)
+      const chapter = await Chapter.findById(chapterId);
       if (!chapter) {
         return res.status(404).json({
           success: false,
           message: "Chapter not found"
         });
       }
+
+      const existingChapterQuiz = await Quiz.findOne({ chapterId });
+      if (existingChapterQuiz) {
+        return res.status(400).json({
+          success: false,
+          message: "Quiz already exists for this chapter"
+        });
+      }
     }
 
-    const isExitChapquiz = await Quiz.findOne({chapterId})
-    if(isExitChapquiz){
-      return res.status(400).json({
-        success: false,
-        message: "Quiz already exists for this chapter"
-      });
-    }
-
+    // Handle module quiz
     if (moduleId) {
-      const modules = await Module.findById(moduleId)
-      if (!modules) {
+      const module = await Module.findById(moduleId);
+      if (!module) {
         return res.status(404).json({
           success: false,
           message: "Module not found"
         });
       }
+
+      const existingModuleQuiz = await Quiz.findOne({ moduleId });
+      if (existingModuleQuiz) {
+        return res.status(400).json({
+          success: false,
+          message: "Quiz already exists for this module"
+        });
+      }
     }
 
-    const isExitModquiz = await Quiz.findOne({moduleId})
-    if(isExitModquiz){
-      return res.status(400).json({
-        success: false,
-        message: "Quiz already exists for this Module"
-      });
-    }
-
+    // Create quiz with appropriate reference
     const quiz = await Quiz.create({
       title,
-      chapterId,
-      moduleId,
+      chapterId: chapterId || null,
+      moduleId: moduleId || null,
       questions
     });
 
-    console.log('Quiz created:', quiz);
-
-    if(chapterId){
-      await Chapter.findByIdAndUpdate(chapterId ,{quizId:quiz._id})
+    // Update the corresponding parent with quiz reference
+    if (chapterId) {
+      await Chapter.findByIdAndUpdate(chapterId, { quizId: quiz._id });
     }
-    if(moduleId){
-      await Chapter.findByIdAndUpdate(moduleId ,{quizId:quiz._id})
+    if (moduleId) {
+      await Module.findByIdAndUpdate(moduleId, { quizId: quiz._id });
     }
 
-    
     return res.status(201).json({
       success: true,
       message: "Quiz created successfully",
       data: quiz
     });
 
-
-
-  }
-
-  catch (error) {
+  } catch (error) {
     console.error("Create quiz error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to create quiz"
+      message: "Failed to create quiz",
+      error: error.message
     });
   }
 };

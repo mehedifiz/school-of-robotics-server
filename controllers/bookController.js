@@ -7,7 +7,7 @@ import { User } from "../models/User/userModel.js";
 // Create a new book (Admin only)
 export const createBook = async (req, res) => {
   try {
-    const { name, description, thumbnail, plan } = req.body;
+    const { name, description, thumbnail, plan, author } = req.body;
 
     if (!name || !description || !plan) {
       return res.status(400).json({
@@ -21,6 +21,7 @@ export const createBook = async (req, res) => {
       description,
       thumbnail,
       plan,
+      author,
       createdBy: req.user._id
     });
 
@@ -412,7 +413,7 @@ export const deleteChapter = async (req, res) => {
 
       const bookId = result.bookId;
 
-      const removeQuiz = await Quiz.findOneAndDelete({chapterId :chapterId })
+      const removeQuiz = await Quiz.findOneAndDelete({ chapterId: chapterId })
 
       const removechapter = await Book.findByIdAndUpdate(bookId, { $pull: { chapters: chapterId } })
 
@@ -484,19 +485,19 @@ export const getBooksFree = async (req, res) => {
   }
 }
 
-export const getChaptersFree = async (req, res) => {
+export const getBookFree = async (req, res) => {
 
   try {
     const { bookId } = req.params;
     console.log("book Id", bookId)
 
 
-    const chapters = await Chapter.find({ bookId }).select("-pdfUrl")
-    if (chapters) {
+    const book = await Book.findById(bookId).populate({ path: "chapters", select: "title chapterNo" })
+    if (book) {
       return res.status(200).json({
         success: true,
-        message: "Books Chaptes ",
-        data: chapters
+        message: "Books Find ",
+        data: book
       })
     }
 
@@ -510,3 +511,4 @@ export const getChaptersFree = async (req, res) => {
   }
 
 }
+

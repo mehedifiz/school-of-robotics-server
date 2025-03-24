@@ -11,14 +11,15 @@ import {
   updateChapter,
   deleteChapter,
   getBooksFree,
-  getChaptersFree
+  getBookFree,
+  
   
 } from '../controllers/bookController.js';
 
 const bookRouter = express.Router();
 
 bookRouter.get('/getAllBooksFree' ,  getBooksFree )
-bookRouter.get('/getChapterFree/:bookId' ,  getChaptersFree )
+bookRouter.get('/getBookFree/:bookId' ,  getBookFree )
 
 // Admin routes
 bookRouter.post('/create-book', auth('admin'), createBook);
