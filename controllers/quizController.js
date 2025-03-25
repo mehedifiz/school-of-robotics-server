@@ -53,6 +53,71 @@ export const getQuizByChapter = async (req, res) => {
   }
 };
 
+export const getQuizSubmission = async (req, res) => {
+  try {
+    const { submissionId } = req.params;
+    const userId = req.user._id;
+    
+    // Find the submission
+    const submission = await QuizSubmission.findById(submissionId);
+    
+    if (!submission) {
+      return res.status(404).json({
+        success: false,
+        message: "Submission not found"
+      });
+    }
+    
+    // Security check - users can only view their own submissions
+    if (submission.userId.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "You don't have permission to view this submission"
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      message: "Quiz submission retrieved successfully",
+      data: submission
+    });
+  } catch (error) {
+    console.error("Error retrieving quiz submission:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve quiz submission",
+      error: error.message
+    });
+  }
+};
+
+export const getQuizById = async (req, res) => {
+  try {
+    const { quizId } = req.params;
+    
+    const quiz = await Quiz.findById(quizId);
+    if (!quiz) {
+      return res.status(404).json({
+        success: false,
+        message: "Quiz not found"
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      message: "Quiz retrieved successfully",
+      data: quiz
+    });
+  } catch (error) {
+    console.error("Error retrieving quiz:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve quiz",
+      error: error.message
+    });
+  }
+};
+
 export const createQuiz = async (req, res) => {
   try {
     const { title, chapterId, moduleId, questions } = req.body;
