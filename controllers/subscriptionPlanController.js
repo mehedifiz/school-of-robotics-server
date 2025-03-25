@@ -45,6 +45,33 @@ export const getAllPlans = async (req, res) => {
   }
 };
 
+//get only one data by id
+export const getAPlan = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const plan = await SubscriptionPlan.findById(id)
+
+    if (!plan) {
+      return res.status(400).json({
+        success: false,
+        message: 'plan not found!'
+      })
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Plan fetched successfully!',
+      data: plan
+    })
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    })
+  }
+}
+
 // Update subscription plan (Admin only)
 export const updatePlan = async (req, res) => {
   try {
@@ -81,3 +108,31 @@ export const updatePlan = async (req, res) => {
     });
   }
 };
+
+
+export const deletePlan = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const plan = await SubscriptionPlan.findByIdAndDelete(id);
+
+    if (!plan) {
+      return res.status(404).json({
+        success: false,
+        message: 'Plan not found'
+      })
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Plan deleted successfully!'
+    })
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message || 'Something went wrong!'
+    })
+  }
+}
+
+
