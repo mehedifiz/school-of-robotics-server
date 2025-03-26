@@ -1,6 +1,6 @@
 import express from "express";
 import auth from "../middleware/authMiddleware.js";
-import { getAllUser, getUserByID } from "../controllers/userController.js";
+import { getAllUser, getUserByID, updateProfile } from "../controllers/userController.js";
 import { getBookProgress, getUserReadingProgress, updateLastReadChapter, markChapterComplete } from "../controllers/bookController.js";
  
 
@@ -23,5 +23,8 @@ userRouter.post('/update-last-read', auth('student', 'admin'), updateLastReadCha
 
 // Mark chapter as complete
 userRouter.post('/mark-chapter-complete', auth('student', 'admin'), markChapterComplete);
+
+// Update profile
+userRouter.patch('/update-profile', auth('student', 'admin'), updateProfile);
 
 export default userRouter;

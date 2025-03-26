@@ -62,7 +62,24 @@ const userSchema = new mongoose.Schema({
         default: false
       }
     }
-  ]
+  ],
+  gender: {
+    type: String,
+  
+    default: "other"
+  },
+  className: {
+    type: String,
+    trim: true
+  },
+  institute: {
+    type: String,
+    trim: true
+  },
+  address: {
+    type: String,
+    trim: true
+  }
 }, { timestamps: true });
 
 export const User = mongoose.model("User", userSchema);
