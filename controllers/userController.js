@@ -2,7 +2,7 @@ import { User } from "../models/User/userModel.js";
 import { Chapter } from "../models/Book/chapterModel.js";
 import { Module } from "../models/Course/moduleModel.js";
 import mongoose from "mongoose";
-
+import { QuizSubmission } from "../models/quiz/quizsubmissoin.js";
 
 export const getUserByID = async (req, res) => {
   try {
@@ -139,6 +139,293 @@ export const updateProfile = async (req, res) => {
       success: false,
       message: "Failed to update profile",
       error: error.message
+    });
+  }
+};
+
+export const getUserStats = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    const overallStats = await QuizSubmission.aggregate([
+      { 
+        $match: { userId: new mongoose.Types.ObjectId(userId) }
+      },
+      {
+        $lookup: {
+          from: 'quizzes',
+          localField: 'quizId',
+          foreignField: '_id',
+          as: 'quiz'
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalAttempts: { $sum: 1 },
+          totalPassed: { $sum: { $cond: ["$passed", 1, 0] } },
+          totalFailed: { $sum: { $cond: ["$passed", 0, 1] } },
+          totalScore: { $sum: "$score" },
+          averageScore: { $avg: "$score" },
+          highestScore: { $max: "$score" },
+          lowestScore: { $min: "$score" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          totalAttempts: 1,
+          totalPassed: 1,
+          totalFailed: 1,
+          averageScore: { $round: ["$averageScore", 2] },
+          highestScore: 1,
+          lowestScore: 1,
+          overallPercentage: { 
+            $round: [
+              { $multiply: ["$averageScore", 10] }, // Multiply by 10 since score is out of 10
+              2
+            ]
+          }
+        }
+      }
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Overall quiz statistics fetched successfully",
+      data: overallStats[0] || {
+        totalAttempts: 0,
+        totalPassed: 0,
+        totalFailed: 0,
+        averageScore: 0,
+        overallPercentage: 0,
+        highestScore: 0,
+        lowestScore: 0
+      }
+    });
+
+  } catch (error) {
+    console.error("Get user stats error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch statistics"
+    });
+  }
+};
+
+export const getQuizStats = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // Book Quiz Statistics
+    const bookQuizStats = await QuizSubmission.aggregate([
+      {
+        $match: { userId: new mongoose.Types.ObjectId(userId) }
+      },
+      {
+        $lookup: {
+          from: 'quizzes',
+          localField: 'quizId',
+          foreignField: '_id',
+          as: 'quiz'
+        }
+      },
+      {
+        $unwind: '$quiz' // Unwind the quiz array
+      },
+      {
+        $match: { 
+          'quiz.chapterId': { $exists: true, $ne: null } 
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalAttempts: { $sum: 1 },
+          passedQuizzes: { $sum: { $cond: ["$passed", 1, 0] } },
+          failedQuizzes: { $sum: { $cond: ["$passed", 0, 1] } },
+          averageScore: { $avg: "$score" },
+          highestScore: { $max: "$score" },
+          totalQuizzes: { $addToSet: "$quizId" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          totalAttempts: 1,
+          passedQuizzes: 1,
+          failedQuizzes: 1,
+          averageScore: { $round: ["$averageScore", 2] },
+          highestScore: 1,
+          passPercentage: {
+            $round: [
+              { $multiply: [
+                { $divide: ["$passedQuizzes", "$totalAttempts"] },
+                100
+              ]}, 2
+            ]
+          },
+          overallPercentage: {
+            $round: [
+              { $multiply: ["$averageScore", 10] },
+              2
+            ]
+          },
+          uniqueQuizzesTaken: { $size: "$totalQuizzes" }
+        }
+      }
+    ]);
+
+    // Course Quiz Statistics
+    const courseQuizStats = await QuizSubmission.aggregate([
+      {
+        $match: { userId: new mongoose.Types.ObjectId(userId) }
+      },
+      {
+        $lookup: {
+          from: 'quizzes',
+          localField: 'quizId',
+          foreignField: '_id',
+          as: 'quiz'
+        }
+      },
+      {
+        $unwind: '$quiz' // Unwind the quiz array
+      },
+      {
+        $match: { 
+          'quiz.moduleId': { $exists: true, $ne: null } 
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalAttempts: { $sum: 1 },
+          passedQuizzes: { $sum: { $cond: ["$passed", 1, 0] } },
+          failedQuizzes: { $sum: { $cond: ["$passed", 0, 1] } },
+          averageScore: { $avg: "$score" },
+          highestScore: { $max: "$score" },
+          totalQuizzes: { $addToSet: "$quizId" }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          totalAttempts: 1,
+          passedQuizzes: 1,
+          failedQuizzes: 1,
+          averageScore: { $round: ["$averageScore", 2] },
+          highestScore: 1,
+          passPercentage: {
+            $round: [
+              { $multiply: [
+                { $divide: ["$passedQuizzes", "$totalAttempts"] },
+                100
+              ]}, 2
+            ]
+          },
+          overallPercentage: {
+            $round: [
+              { $multiply: ["$averageScore", 10] },
+              2
+            ]
+          },
+          uniqueQuizzesTaken: { $size: "$totalQuizzes" }
+        }
+      }
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Quiz statistics fetched successfully",
+      data: {
+        bookQuizzes: bookQuizStats[0] || {
+          totalAttempts: 0,
+          passedQuizzes: 0,
+          failedQuizzes: 0,
+          averageScore: 0,
+          highestScore: 0,
+         
+          overallPercentage: 0,
+          
+        },
+        courseQuizzes: courseQuizStats[0] || {
+          totalAttempts: 0,
+          passedQuizzes: 0,
+          failedQuizzes: 0,
+          averageScore: 0,
+          highestScore: 0,
+          
+          overallPercentage: 0,
+         
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error("Get quiz stats error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch quiz statistics"
+    });
+  }
+};
+
+export const getWeeklyPerformance = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const lastWeek = new Date();
+    lastWeek.setDate(lastWeek.getDate() - 7);
+
+    const weeklyStats = await QuizSubmission.aggregate([
+      {
+        $match: {
+          userId: new mongoose.Types.ObjectId(userId),
+          createdAt: { $gte: lastWeek }
+        }
+      },
+      {
+        $lookup: {
+          from: 'quizzes',
+          localField: 'quizId',
+          foreignField: '_id',
+          as: 'quiz'
+        }
+      },
+      {
+        $group: {
+          _id: { 
+            date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+            type: {
+              $cond: [
+                { $gt: [{ $size: "$quiz.chapterId" }, 0] },
+                "book",
+                "course"
+              ]
+            }
+          },
+          attempts: { $sum: 1 },
+          passed: { $sum: { $cond: ["$passed", 1, 0] } },
+          failed: { $sum: { $cond: ["$passed", 0, 1] } },
+          averageScore: { $avg: "$score" }
+        }
+      },
+      {
+        $sort: { "_id.date": 1 }
+      }
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Weekly performance fetched successfully",
+      data: weeklyStats
+    });
+
+  } catch (error) {
+    console.error("Get weekly performance error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch weekly performance"
     });
   }
 };

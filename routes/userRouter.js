@@ -1,6 +1,13 @@
 import express from "express";
 import auth from "../middleware/authMiddleware.js";
-import { getAllUser, getUserByID, updateProfile } from "../controllers/userController.js";
+import { 
+  getAllUser, 
+  getUserByID, 
+  updateProfile,
+  getUserStats,
+  getQuizStats,
+  getWeeklyPerformance 
+} from "../controllers/userController.js";
 import { getBookProgress, getUserReadingProgress, updateLastReadChapter, markChapterComplete } from "../controllers/bookController.js";
  
 
@@ -26,5 +33,10 @@ userRouter.post('/mark-chapter-complete', auth('student', 'admin'), markChapterC
 
 // Update profile
 userRouter.patch('/update-profile', auth('student', 'admin'), updateProfile);
+
+// Statistics routes
+userRouter.get('/stats/overview', auth('student', 'admin'), getUserStats);
+userRouter.get('/stats/quiz', auth('student', 'admin'), getQuizStats);
+userRouter.get('/stats/weekly', auth('student', 'admin'), getWeeklyPerformance);
 
 export default userRouter;

@@ -1,10 +1,10 @@
 import express from 'express';
 import auth from '../middleware/authMiddleware.js';
-import { 
-  createPlan, 
-  deletePlan, 
-  getAllPlans, 
-  getAPlan, 
+import {
+  createPlan,
+  deletePlan,
+  getAllPlans,
+  getAPlan,
   updatePlan,
   createSslPayment,
   paymentSuccess,
