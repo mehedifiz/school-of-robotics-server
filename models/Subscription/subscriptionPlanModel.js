@@ -4,7 +4,7 @@ const subscriptionPlanSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
-    enum: ["Basic Plan", "Standard Plan", "Premium Plan", "Free Plan"],
+    enum: ["basic", "standard", "premium", "free"],
     immutable: true
   },
   
@@ -20,19 +20,7 @@ const subscriptionPlanSchema = new mongoose.Schema({
   features: [{
     type: String,
     required: true
-  }],
-  resourceAccess: {
-    courses: {
-      type: String,
-      enum: ["basic", "standard", "premium", "free"],
-      required: true
-    },
-    books: {
-      type: String,
-      enum: ["basic", "standard", "premium", "free"],
-      required: true
-    }
-  },
+  }] ,
   description: {
     type: String,
     required: true,
