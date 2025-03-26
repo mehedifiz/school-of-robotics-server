@@ -7,16 +7,16 @@ const userSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  photpURL: { 
-    type: String, 
+  photpURL: {
+    type: String,
   },
   email: {
     type: String,
     unique: true,
     trim: true
   },
-  phone: { 
-    type: Number, 
+  phone: {
+    type: Number,
     unique: true,
     required: true
   },
@@ -24,12 +24,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  role: { 
-    type: String, 
-    enum: ["student", "admin"], 
-    default: "student" 
+  role: {
+    type: String,
+    enum: ["student", "admin"],
+    default: "student"
   },
-  subscription: { 
+  subscription: {
     plan: {
       type: String,
       enum: ["free", "basic", "standard", "premium"],
@@ -41,7 +41,11 @@ const userSchema = new mongoose.Schema({
     },
     endDate: {
       type: Date
-    }
+    },
+    transactionId:String,
+    validationId: String,
+    amount:Number,
+    status: String ,
   },
   progress: [
     {
