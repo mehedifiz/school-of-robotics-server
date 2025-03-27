@@ -1,5 +1,5 @@
 import express from "express";
-import { changePassword, createAdmin, getAllAdmins, loginUser, registerUser, verifyOtp } from "../controllers/authController.js";
+import { changePassword, createAdmin, forgotPassword, getAllAdmins, loginUser, registerUser, resetPassword, verifyOtp } from "../controllers/authController.js";
 import auth from "../middleware/authMiddleware.js";
 
 const authRouter = express.Router();
@@ -17,6 +17,8 @@ authRouter.get("/admins" , auth("admin") , getAllAdmins
 )
 authRouter.post("/change-password", auth("student", "admin"), changePassword);
 
-
+// Forgot Password Routes
+authRouter.post("/forgot-password", forgotPassword);
+authRouter.post("/reset-password", resetPassword);
 
 export default authRouter;

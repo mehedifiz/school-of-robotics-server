@@ -336,3 +336,119 @@ export const changePassword = async (req, res) => {
     });
   }
 };
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { phone } = req.body;
+
+    if (!phone) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone number is required"
+      });
+    }
+
+    // Check if user exists
+    const user = await User.findOne({ phone });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "No user found with this phone number"
+      });
+    }
+
+    // Generate OTP same as registration
+    const otp = Math.floor(100000 + Math.random() * 900000);
+    const message = `Your verification code is: ${otp} -School of Robotics`;
+
+    // Store OTP in OTP collection
+    await OTP.findOneAndUpdate(
+      { phone },
+      { 
+        phone,
+        otp: otp.toString(),
+        createdAt: new Date()
+      },
+      { upsert: true, new: true }
+    );
+
+    // Send OTP via SMS
+    await sendSMS(phone, message);
+
+    return res.status(200).json({
+      success: true,
+      message: "OTP sent successfully for password reset"
+    });
+
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to process forgot password request"
+    });
+  }
+};
+
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { phone, otp, newPassword } = req.body;
+
+    // Validate input
+    if (!phone || !otp || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Phone, OTP and new password are required"
+      });
+    }
+
+    // Verify OTP
+    const otpData = await OTP.findOne({ phone });
+    if (!otpData) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP expired or not found"
+      });
+    }
+
+    if (otpData.otp !== otp.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP"
+      });
+    }
+
+    // Find user
+    const user = await User.findOne({ phone });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      });
+    }
+
+    // Hash new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update password
+    await User.findByIdAndUpdate(user._id, {
+      password: hashedPassword
+    });
+
+    // Cleanup OTP
+    await OTP.deleteOne({ phone });
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successfully"
+    });
+
+  } catch (error) {
+    console.error("Reset password error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to reset password"
+    });
+  }
+};
