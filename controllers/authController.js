@@ -224,3 +224,51 @@ export const createAdmin = async (req, res) => {
     });
   }
 };
+
+
+ 
+
+export const getAllAdmins = async (req, res) => {
+  try {
+    const { search, page = 1, limit = 10 } = req.query;
+    const skip = (page - 1) * limit;
+    
+    let query = { role: "admin" };
+
+    if (search) {
+      const searchRegex = new RegExp(search.trim(), "i");
+      query.$or = [
+        { name: searchRegex },
+        { email: searchRegex },
+        { phone: searchRegex }
+      ];
+    }
+
+    const admins = await User.find(query)
+      .select('-password')
+      .skip(skip)
+      .limit(parseInt(limit))
+      .sort({ createdAt: -1 });
+
+    const total = await User.countDocuments(query);
+
+    return res.status(200).json({
+      success: true,
+      message: "Admins fetched successfully",
+      data: {
+        admins,
+        totalPages: Math.ceil(total / limit),
+        currentPage: parseInt(page),
+        totalAdmins: total
+      }
+    });
+
+  } catch (error) {
+    console.error("Get all admins error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch admins",
+      error: error.message
+    });
+  }
+};

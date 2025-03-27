@@ -3,6 +3,7 @@ import { Chapter } from "../models/Book/chapterModel.js";
 import { Module } from "../models/Course/moduleModel.js";
 import mongoose from "mongoose";
 import { QuizSubmission } from "../models/quiz/quizsubmissoin.js";
+import { Transaction } from "../models/Subscription/transactionModel.js";
 
 export const getUserByID = async (req, res) => {
   try {
@@ -51,7 +52,7 @@ export const getUserByID = async (req, res) => {
 
 export const getAllUser = async (req, res) => {
   try {
-    const { search, role,subscription ,  page = 1, limit = 10 } = req.query;
+    const { search, role, subscription, page = 1, limit = 10 } = req.query;
     const skip = (page - 1) * limit;
     let query = {};
 
@@ -62,8 +63,8 @@ export const getAllUser = async (req, res) => {
 
       ];
     }
-    if(subscription){
-      query.subscription = subscription ;
+    if (subscription) {
+      query.subscription = subscription;
     }
     if (role) {
       query.role = role;
@@ -148,7 +149,7 @@ export const getUserStats = async (req, res) => {
     const userId = req.user._id;
 
     const overallStats = await QuizSubmission.aggregate([
-      { 
+      {
         $match: { userId: new mongoose.Types.ObjectId(userId) }
       },
       {
@@ -180,7 +181,7 @@ export const getUserStats = async (req, res) => {
           averageScore: { $round: ["$averageScore", 2] },
           highestScore: 1,
           lowestScore: 1,
-          overallPercentage: { 
+          overallPercentage: {
             $round: [
               { $multiply: ["$averageScore", 10] }, // Multiply by 10 since score is out of 10
               2
@@ -234,8 +235,8 @@ export const getQuizStats = async (req, res) => {
         $unwind: '$quiz' // Unwind the quiz array
       },
       {
-        $match: { 
-          'quiz.chapterId': { $exists: true, $ne: null } 
+        $match: {
+          'quiz.chapterId': { $exists: true, $ne: null }
         }
       },
       {
@@ -259,10 +260,12 @@ export const getQuizStats = async (req, res) => {
           highestScore: 1,
           passPercentage: {
             $round: [
-              { $multiply: [
-                { $divide: ["$passedQuizzes", "$totalAttempts"] },
-                100
-              ]}, 2
+              {
+                $multiply: [
+                  { $divide: ["$passedQuizzes", "$totalAttempts"] },
+                  100
+                ]
+              }, 2
             ]
           },
           overallPercentage: {
@@ -293,8 +296,8 @@ export const getQuizStats = async (req, res) => {
         $unwind: '$quiz' // Unwind the quiz array
       },
       {
-        $match: { 
-          'quiz.moduleId': { $exists: true, $ne: null } 
+        $match: {
+          'quiz.moduleId': { $exists: true, $ne: null }
         }
       },
       {
@@ -318,10 +321,12 @@ export const getQuizStats = async (req, res) => {
           highestScore: 1,
           passPercentage: {
             $round: [
-              { $multiply: [
-                { $divide: ["$passedQuizzes", "$totalAttempts"] },
-                100
-              ]}, 2
+              {
+                $multiply: [
+                  { $divide: ["$passedQuizzes", "$totalAttempts"] },
+                  100
+                ]
+              }, 2
             ]
           },
           overallPercentage: {
@@ -345,9 +350,9 @@ export const getQuizStats = async (req, res) => {
           failedQuizzes: 0,
           averageScore: 0,
           highestScore: 0,
-         
+
           overallPercentage: 0,
-          
+
         },
         courseQuizzes: courseQuizStats[0] || {
           totalAttempts: 0,
@@ -355,9 +360,9 @@ export const getQuizStats = async (req, res) => {
           failedQuizzes: 0,
           averageScore: 0,
           highestScore: 0,
-          
+
           overallPercentage: 0,
-         
+
         }
       }
     });
@@ -394,7 +399,7 @@ export const getWeeklyPerformance = async (req, res) => {
       },
       {
         $group: {
-          _id: { 
+          _id: {
             date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
             type: {
               $cond: [
@@ -426,6 +431,86 @@ export const getWeeklyPerformance = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to fetch weekly performance"
+    });
+  }
+};
+
+export const getTransactionHistory = async (req, res) => {
+  try {
+    const { search, startDate, endDate, page = 1, limit = 10 } = req.query;
+    const userId = req.user._id;
+    const role = req.user.role;
+    const skip = (page - 1) * limit;
+
+    // Build base query
+    let query = {};
+    if (role !== "admin") {
+      query.userId = userId;
+    }
+
+    // Add search functionality
+    if (search) {
+      const searchRegex = new RegExp(search.trim(), "i");
+      query.$or = [
+        { "transactionId": searchRegex },
+        { "paymentMethod": searchRegex }
+      ];
+    }
+
+    // Add date range filter
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) query.createdAt.$lte = new Date(endDate);
+    }
+
+    // Get transactions with populated fields
+    const transactions = await Transaction.find(query)
+      .populate('userId', 'name email phone')
+      .populate('planId', 'name price duration')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    // Format transactions
+    const formattedTransactions = transactions.map(t => ({
+      _id: t._id,
+      transactionId: t.transactionId,
+      studentName: t.userId?.name || 'N/A',
+      studentPhone: t.userId?.phone || 'N/A',
+      amount: t.amount,
+      paymentMethod: t.paymentMethod,
+      status: t.status,
+      createdAt: t.createdAt,
+      plan: {
+        name: t.planId?.name,
+        price: t.planId?.price,
+        duration: t.planId?.duration
+      }
+    }));
+
+    const total = await Transaction.countDocuments(query);
+
+    return res.status(200).json({
+      success: true,
+      message: "Transaction history fetched successfully",
+      data: {
+        transactions: formattedTransactions,
+        pagination: {
+          totalPages: Math.ceil(total / limit),
+          currentPage: parseInt(page),
+          totalTransactions: total,
+          limit: parseInt(limit)
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error("Get transaction history error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch transaction history",
+      error: error.message
     });
   }
 };
