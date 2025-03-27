@@ -1,5 +1,5 @@
 import express from "express";
-import { createAdmin, getAllAdmins, loginUser, registerUser, verifyOtp } from "../controllers/authController.js";
+import { changePassword, createAdmin, getAllAdmins, loginUser, registerUser, verifyOtp } from "../controllers/authController.js";
 import auth from "../middleware/authMiddleware.js";
 
 const authRouter = express.Router();
@@ -15,6 +15,7 @@ authRouter.post("/create-admin" , auth("admin") , createAdmin)
 
 authRouter.get("/admins" , auth("admin") , getAllAdmins
 )
+authRouter.post("/change-password", auth("student", "admin"), changePassword);
 
 
 
