@@ -7,7 +7,13 @@ import {
   getUserStats,
   getQuizStats,
   getWeeklyPerformance, 
-  getTransactionHistory
+  getTransactionHistory,
+  getAdminDashboardStats,
+  getRevenueAnalytics,
+ 
+   
+  
+  
 } from "../controllers/userController.js";
 import { getBookProgress, getUserReadingProgress, updateLastReadChapter, markChapterComplete } from "../controllers/bookController.js";
  
@@ -39,6 +45,13 @@ userRouter.patch('/update-profile', auth('student', 'admin'), updateProfile);
 userRouter.get('/stats/overview', auth('student', 'admin'), getUserStats);
 userRouter.get('/stats/quiz', auth('student', 'admin'), getQuizStats);
 userRouter.get('/stats/weekly', auth('student', 'admin'), getWeeklyPerformance);
+
+//admin 
+userRouter.get("/getBasicStats",    getAdminDashboardStats)
+
+// Admin Dashboard Routes
+ 
+userRouter.get('/revenue-analytics',  getRevenueAnalytics);
 
  
 // Transaction history

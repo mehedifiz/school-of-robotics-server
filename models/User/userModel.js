@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   },
   photpURL: {
     type: String,
+    default:""
   },
   email: {
     type: String,

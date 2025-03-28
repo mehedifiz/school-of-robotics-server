@@ -4,6 +4,8 @@ import { Module } from "../models/Course/moduleModel.js";
 import mongoose from "mongoose";
 import { QuizSubmission } from "../models/quiz/quizsubmissoin.js";
 import { Transaction } from "../models/Subscription/transactionModel.js";
+import { Course } from "../models/Course/courseModel.js";
+import { Book } from "../models/Book/bookModel.js";
 
 export const getUserByID = async (req, res) => {
   try {
@@ -398,26 +400,28 @@ export const getWeeklyPerformance = async (req, res) => {
         }
       },
       {
+        $unwind: '$quiz' // Unwind quiz array to access first element
+      },
+      {
         $group: {
           _id: {
             date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
             type: {
               $cond: [
-                { $gt: [{ $size: "$quiz.chapterId" }, 0] },
-                "book",
-                "course"
+                { $ifNull: ['$quiz.chapterId', false] },
+                'book',
+                'course'
               ]
             }
           },
           attempts: { $sum: 1 },
           passed: { $sum: { $cond: ["$passed", 1, 0] } },
           failed: { $sum: { $cond: ["$passed", 0, 1] } },
-          averageScore: { $avg: "$score" }
+          averageScore: { $avg: "$score" },
+          highestScore: { $max: "$score" }
         }
       },
-      {
-        $sort: { "_id.date": 1 }
-      }
+      // ...rest of your aggregation remains same...
     ]);
 
     return res.status(200).json({
@@ -511,6 +515,98 @@ export const getTransactionHistory = async (req, res) => {
       success: false,
       message: "Failed to fetch transaction history",
       error: error.message
+    });
+  }
+};
+
+export const getAdminDashboardStats = async (req, res) => {
+  try {
+    const [totalStudents, totalCourses, totalBooks, subscriptionStats] = await Promise.all([
+      User.countDocuments({ role: 'student' }),
+      Course.countDocuments(),
+      Book.countDocuments(),
+      User.aggregate([
+        {
+          $match: { role: 'student' }
+        },
+        {
+          $group: {
+            _id: '$subscription.plan',
+            count: { $sum: 1 }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            plan: '$_id',
+            count: 1
+          }
+        }
+      ])
+    ]);
+
+    const planCounts = {
+      free: 0,
+      basic: 0,
+      standard: 0,
+      premium: 0
+    };
+
+    subscriptionStats.forEach(stat => {
+      if (stat.plan) {
+        planCounts[stat.plan] = stat.count;
+      }
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        totalStudents,
+        totalCourses,
+        totalBooks,
+        subscriptionStats: planCounts
+      }
+    });
+  } catch (error) {
+    console.error("Admin dashboard stats error:", error);
+    return res.status(500).json({ 
+      success: false, 
+      message: "Failed to fetch dashboard stats" 
+    });
+  }
+};
+
+export const getRevenueAnalytics = async (req, res) => {
+  try {
+    const revenueStats = await Transaction.aggregate([
+      {
+        $group: {
+          _id: null,
+          revenue: { $sum: "$amount" },
+          transactions: { $sum: 1 }
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          revenue: 1,
+          transactions: 1
+        }
+      }
+    ]);
+
+    return res.json({
+      success: true,
+      data: {
+        revenue: revenueStats[0]?.revenue || 0,
+        transactions: revenueStats[0]?.transactions || 0
+      }
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch revenue analytics"
     });
   }
 };

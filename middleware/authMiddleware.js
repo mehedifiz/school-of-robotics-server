@@ -26,7 +26,7 @@ const auth = (...requiredRoles) => {
     if (requiredRoles && !requiredRoles.includes(role)) {
       throw new ApiError(401, "You are not authorized!");
     }
-
+    console.log(id);
     req.user = {
       _id: id,
       role,
