@@ -1,5 +1,5 @@
 import express from "express";
-import { changePassword, createAdmin, forgotPassword, getAllAdmins, loginUser, registerUser, resetPassword, verifyOtp } from "../controllers/authController.js";
+import { changePassword, createAdmin, forgotPassword, getAllAdmins, loginUser, registerUser, removeAdmin, resetPassword, verifyOtp } from "../controllers/authController.js";
 import auth from "../middleware/authMiddleware.js";
 
 const authRouter = express.Router();
@@ -15,6 +15,9 @@ authRouter.post("/create-admin" , auth("admin") , createAdmin)
 
 authRouter.get("/admins" , auth("admin") , getAllAdmins
 )
+authRouter.delete("/remove-admin/:id", auth("admin"), removeAdmin);
+
+
 authRouter.post("/change-password", auth("student", "admin"), changePassword);
 
 // Forgot Password Routes
