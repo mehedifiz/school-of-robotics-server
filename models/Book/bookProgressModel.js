@@ -5,6 +5,7 @@ const bookProgressSchema = new mongoose.Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     bookId: { type: mongoose.Schema.Types.ObjectId, ref: "Book" },
     completedChapters: [{ type: mongoose.Schema.Types.ObjectId, ref: "Chapter" }],
+    lastReadChapterId: { type: mongoose.Schema.Types.ObjectId, ref: "Chapter" }
   },
   { timestamps: true }
 );
