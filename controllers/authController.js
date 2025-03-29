@@ -273,6 +273,53 @@ export const getAllAdmins = async (req, res) => {
   }
 };
 
+export const removeAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if admin exists
+    const admin = await User.findById(id);
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found"
+      });
+    }
+
+    // Verify it's an admin account
+    if (admin.role !== 'admin') {
+      return res.status(400).json({
+        success: false,
+        message: "This user is not an admin"
+      });
+    }
+
+    // Prevent self-deletion
+    if (admin._id.toString() === req.user._id.toString()) {
+      return res.status(400).json({
+        success: false,
+        message: "You cannot remove yourself"
+      });
+    }
+
+    // Remove the admin
+    await User.findByIdAndDelete(id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Admin removed successfully"
+    });
+
+  } catch (error) {
+    console.error("Remove admin error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to remove admin",
+      error: error.message
+    });
+  }
+};
+
 
 export const changePassword = async (req, res) => {
   try {
