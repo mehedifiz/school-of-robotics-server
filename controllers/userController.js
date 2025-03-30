@@ -100,7 +100,7 @@ export const getAllUser = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const { name, gender, className, institute, address } = req.body;
+    const {photpURL, name, gender, className, institute, address } = req.body;
     const userId = req.user._id;
 
     // Validate the input
@@ -118,7 +118,8 @@ export const updateProfile = async (req, res) => {
         gender,
         className,
         institute,
-        address
+        address,
+        photpURL
       },
       { new: true, runValidators: true }
     ).select('-password');
