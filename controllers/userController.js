@@ -100,7 +100,7 @@ export const getAllUser = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
   try {
-    const {photpURL, name, gender, className, institute, address } = req.body;
+    const {photoURL, name, gender, className, institute, address } = req.body;
     const userId = req.user._id;
 
     // Validate the input
