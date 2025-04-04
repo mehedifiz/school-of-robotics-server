@@ -119,7 +119,7 @@ export const updateProfile = async (req, res) => {
         className,
         institute,
         address,
-        photpURL
+        photoURL
       },
       { new: true, runValidators: true }
     ).select('-password');
